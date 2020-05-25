@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from './user.repository';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayLoad } from 'src/auth/jwt-payload.interface';
+import { User } from './user.entity';
 
 @Injectable()
 export class AuthService {
@@ -29,4 +30,24 @@ export class AuthService {
 
         return { accessToken };
     }
+
+    async getUserById(id: number) : Promise<User>{
+        const found = await this.userRepository.findOne(id);
+
+        if (!found) {
+            throw new NotFoundException(`User with ID "${id}" not found`);
+        }
+
+        return found;
+    }
+
+    async getAllUsers() :Promise<User[]>{
+        const users = await this.userRepository.find();
+
+        if (!users) {
+            throw new NotFoundException(`No users available`);
+        }
+        return users;
+    }
+
 }

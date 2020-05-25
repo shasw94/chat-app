@@ -1,26 +1,22 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayInit, WsResponse, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { SubscribeMessage, WebSocketGateway,  WebSocketServer } from '@nestjs/websockets';
+import { Logger, OnModuleInit } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
+import * as socketioJwt from 'socketio-jwt';
 
-@WebSocketGateway()
-export class SocketsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect{
 
-  private logger: Logger = new Logger('SocketsGateway');
+@WebSocketGateway(1080, { namespace: 'groups' })
+export class SocketsGateway implements OnModuleInit {
 
-  afterInit(server: Server) {
-    this.logger.log('Initialized');
+  @WebSocketServer()
+  server: Server;
+
+  onModuleInit(): void {
+    this.server.use(socketioJwt.authorize({
+      secret: 'superSecretKey',
+      handshake: true,
+    }));
   }
 
-  handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected: '  ${client.id}`);
-  }
-  handleConnection(client: Socket, ...args: any[]) {
-    this.logger.log(`Client connected: '  ${client.id}`);
-  }
+  
 
-  @SubscribeMessage('msgToServer')
-  handleMessage(client: Socket, text: string): WsResponse<string> {
-    // client.emit('msgToClient, text)---> equivalent below with type safety
-    return {event: 'msgToServer', data: text};
-  }
 }
