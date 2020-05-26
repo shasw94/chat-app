@@ -41,12 +41,20 @@ export class AuthService {
         return found;
     }
 
-    async getAllUsers() :Promise<User[]>{
-        const users = await this.userRepository.find();
+    async getAllUsers(user: User) :Promise<User[]>{
+        let users = await this.userRepository.find();
 
         if (!users) {
             throw new NotFoundException(`No users available`);
         }
+        let i = 0;
+        users.forEach(u => {
+            delete u.password;
+            delete u.salt;
+            if (u.id == user.id) {
+                users = users.filter((val) => val.id != user.id)
+            }
+        })
         return users;
     }
 

@@ -15,6 +15,6 @@ import { MessagesModule } from './messages/messages.module';
     GroupsModule,
     MessagesModule,
   ],
-  providers: [SocketsGateway],
+  providers: [],
 })
 export class AppModule {}

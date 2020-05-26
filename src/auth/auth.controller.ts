@@ -36,4 +36,11 @@ export class AuthController {
     test(@GetUser() req) {
         return req;
     }
+
+    @Post('/getMyFriendList')
+    @UseGuards(AuthGuard())
+    getMyFriendList(@GetUser() user : User) : Promise<User[]>{
+        return this.authService.getAllUsers(user);
+    }
+
 }

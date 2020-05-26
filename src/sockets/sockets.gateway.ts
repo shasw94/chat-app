@@ -1,22 +1,55 @@
-import { SubscribeMessage, WebSocketGateway,  WebSocketServer } from '@nestjs/websockets';
+import { SubscribeMessage, WebSocketGateway,  WebSocketServer, OnGatewayInit } from '@nestjs/websockets';
 import { Logger, OnModuleInit } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import * as socketioJwt from 'socketio-jwt';
+import { CreateMessageDto } from 'src/messages/dto/create-message-dto';
+import { Messages } from 'src/messages/message.entity';
 
 
-@WebSocketGateway(1080, { namespace: 'groups' })
-export class SocketsGateway implements OnModuleInit {
+@WebSocketGateway()
+export class SocketsGateway implements OnGatewayInit {
 
   @WebSocketServer()
   server: Server;
 
-  onModuleInit(): void {
-    this.server.use(socketioJwt.authorize({
-      secret: 'superSecretKey',
-      handshake: true,
-    }));
+  private logger: Logger = new Logger('SocketGateway');
+
+  afterInit(server: any) {
+    this.logger.log('INITIALIZED');
   }
 
-  
+  @SubscribeMessage('chatToServer')
+  handleMessage(client: Socket, payload: {sender: string, group: string, text: string, username: string}): void {
+    console.log(payload, client.id);
+    this.server.emit('chatToClient', payload);
+    let dto = new CreateMessageDto();
+    dto.message = payload.text;
+    dto.senderId = +payload.sender;
+    dto.receiverId = +payload.group;
+    this.createMessage(dto);
+  }
+
+  async createMessage(createMessageDto: CreateMessageDto ) : Promise<Messages>{
+    const {message, senderId, receiverId } = createMessageDto;
+        const msg = new Messages();
+        msg.message = message;
+        msg.senderId = senderId;
+        msg.receiverId = receiverId;
+        await msg.save();
+
+        return msg; 
+  }
+
+  @SubscribeMessage('joinRoom')
+  handleJoinRoom(client: Socket, group: string) {
+    client.join(group);
+    client.emit('joinedRoom', group);
+  }
+
+  @SubscribeMessage('leaveRoom')
+  handleLeaveRoom(client: Socket, group: string ) {
+    client.leave(group)
+    client.emit('leftRoom', group);
+  }
 
 }

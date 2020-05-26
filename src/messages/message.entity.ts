@@ -16,6 +16,13 @@ export class Messages extends BaseEntity {
     @ManyToOne(type => User, user => user.senders, {eager: false})
     sender: User;
 
+    @Column()
+    senderId: number;
+
+
     @ManyToOne(type=> Groups, group => group.messages, {eager: false})
     receiver: Groups;
+
+    @Column()
+    receiverId: number;
 }
