@@ -6,6 +6,8 @@ import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dto/create-group-dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
+import { CreateGroupUserDto } from './dto/create-group_user-dto';
+import { GroupUser } from './group_user.entity';
 
 @Controller('groups')
 export class GroupsController {
@@ -16,10 +18,18 @@ export class GroupsController {
         return this.groupService.getGroupById(id);
     }
 
-    @Post()
+    @Post('/createGroup')
     @UsePipes(ValidationPipe)
-    createGroup(@Body() createGroupDto: CreateGroupDto): Promise<Groups> {
-        return this.groupService.createGroup(createGroupDto);
+    @UseGuards(AuthGuard())
+    createGroup(@Body() createGroupDto: CreateGroupDto, @GetUser() user): Promise<Groups> {
+        return this.groupService.createGroup(createGroupDto, user);
+    }
+
+    @Post('/creatGroupUser')
+    @UsePipes(ValidationPipe)
+    @UseGuards(AuthGuard())
+    createGroupUser(@Body() createGroupUserDto: CreateGroupUserDto): Promise<GroupUser> {
+        return this.groupService.createGroupUser(createGroupUserDto);
     }
 
     @Post('/listGroupsOfUser')

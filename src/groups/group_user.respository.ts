@@ -9,14 +9,10 @@ export class GroupUserRepository extends Repository<GroupUser> {
     async createGroupUser(createGroupUserDto: CreateGroupUserDto): Promise<GroupUser> {
         const { groupsid, usersid } = createGroupUserDto;
         const groupuser = new GroupUser();
-        try {
-            groupuser.usersId = usersid;
-            groupuser.groupsId = groupsid;
-            await groupuser.save();
+        groupuser.usersId = usersid;
+        groupuser.groupsId = groupsid;
+        await groupuser.save();
 
-        } catch {
-            throw new NotFoundException(`Invalid ids provided`);
-        }
         return groupuser;
     }
 }

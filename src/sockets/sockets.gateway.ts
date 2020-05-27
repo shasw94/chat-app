@@ -19,9 +19,10 @@ export class SocketsGateway implements OnGatewayInit {
   }
 
   @SubscribeMessage('chatToServer')
-  handleMessage(client: Socket, payload: {sender: string, group: string, text: string, username: string}): void {
+  handleMessage(client: Socket, payload: {sender: string, group: string, text: string, username: string, room: string}): void {
     console.log(payload, client.id);
-    this.server.emit('chatToClient', payload);
+    // this.server.emit('chatToClient', payload);
+    this.server.to(payload.room).emit('chatToClient', payload);
     let dto = new CreateMessageDto();
     dto.message = payload.text;
     dto.senderId = +payload.sender;
@@ -42,12 +43,14 @@ export class SocketsGateway implements OnGatewayInit {
 
   @SubscribeMessage('joinRoom')
   handleJoinRoom(client: Socket, group: string) {
+    console.log('someone joined' , group);
     client.join(group);
     client.emit('joinedRoom', group);
   }
 
   @SubscribeMessage('leaveRoom')
   handleLeaveRoom(client: Socket, group: string ) {
+    console.log('someone left' , group);
     client.leave(group)
     client.emit('leftRoom', group);
   }
